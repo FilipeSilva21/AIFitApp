@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>AifitappFrontend</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script>
+    window.addEventListener('error', function(e) {
+      var div = document.createElement('div');
+      div.style.cssText = 'position:fixed;top:0;left:0;right:0;background:red;color:white;padding:20px;z-index:9999;font-family:monospace;white-space:pre-wrap;overflow:auto;max-height:100vh;';
+      div.innerHTML = '<h2>Global Error</h2>' + (e.error ? e.error.message + '\n\n' + e.error.stack : e.message);
+      document.body.appendChild(div);
+    });
+    window.addEventListener('unhandledrejection', function(e) {
+      var div = document.createElement('div');
+      div.style.cssText = 'position:fixed;top:0;left:0;right:0;background:orange;color:white;padding:20px;z-index:9999;font-family:monospace;white-space:pre-wrap;overflow:auto;max-height:100vh;';
+      div.innerHTML = '<h2>Promise Rejection</h2>' + (e.reason ? (e.reason.message + '\n\n' + e.reason.stack) : JSON.stringify(e.reason));
+      document.body.appendChild(div);
+    });
+  </script>
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>

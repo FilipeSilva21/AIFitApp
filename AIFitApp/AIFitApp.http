@@ -1,0 +1,6 @@
+@AIFitApp_HostAddress = http://localhost:5177
+
+GET {{AIFitApp_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

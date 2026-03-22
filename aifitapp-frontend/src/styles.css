@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-dark-bg text-slate-200 font-sans antialiased selection:bg-primary selection:text-white min-h-screen overflow-x-hidden;
+  }
+}
+
+@layer components {
+  /* Premium Glassmorphism Cards */
+  .glass-card {
+    @apply bg-dark-card/60 backdrop-blur-md border border-dark-border rounded-2xl shadow-xl transition-all duration-300;
+  }
+  
+  .glass-card:hover {
+    @apply border-primary/30 shadow-[0_0_15px_rgba(6,182,212,0.15)];
+  }
+
+  /* Vibrant Buttons */
+  .btn-primary {
+    @apply relative inline-flex items-center justify-center px-6 py-3 font-semibold text-white transition-all duration-300 bg-primary rounded-xl overflow-hidden shadow-[0_4px_14px_0_rgba(6,182,212,0.39)] hover:shadow-[0_6px_20px_rgba(6,182,212,0.23)] hover:bg-primary-hover active:scale-[0.98];
+  }
+
+  .btn-secondary {
+    @apply relative inline-flex items-center justify-center px-6 py-3 font-semibold text-white transition-all duration-300 bg-dark-card border border-dark-border rounded-xl hover:border-slate-500 hover:bg-slate-700/50 active:scale-[0.98];
+  }
+
+  /* Gradient Text Utility */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
+  }
+
+  /* Inputs */
+  .input-field {
+    @apply w-full bg-dark-bg/50 border border-dark-border text-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-200 placeholder-slate-500;
+  }
+  
+  .input-label {
+    @apply block text-sm font-medium text-slate-400 mb-1.5 ml-1;
+  }
+}
+
+/* Custom Scrollbar for Webkit */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0F172A;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
