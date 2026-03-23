@@ -22,7 +22,8 @@ public record GenerateWorkoutRequest(
     string? Injuries,
     List<WeekDay> AvailableDays,
     SessionDuration Duration,
-    string? AdditionalNotes
+    string? AdditionalNotes,
+    string? Language = "pt"
 );
 
 // ======= Workout Response =======
@@ -57,7 +58,8 @@ public record GenerateDietRequest(
     int? Age,
     int? TargetCalories,
     string? Restrictions,
-    string? AdditionalNotes
+    string? AdditionalNotes,
+    string? Language = "pt"
 );
 
 // ======= Diet Response =======

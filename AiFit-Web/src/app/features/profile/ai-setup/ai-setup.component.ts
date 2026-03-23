@@ -4,11 +4,13 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../../../environments/environment';
+import { LanguageService } from '../../../core/services/language.service';
+import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 
 @Component({
   selector: 'app-ai-setup',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, TranslatePipe],
   template: `
     <div class="min-h-screen flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-hero-glow opacity-20 pointer-events-none"></div>
@@ -18,21 +20,21 @@ import { environment } from '../../../../environments/environment';
           <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 text-primary mb-4">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
           </div>
-          <h1 class="text-3xl font-bold mb-2 text-gradient">Connect Your AI</h1>
-          <p class="text-slate-400">AIFit uses your own AI API key to generate customized workouts and diets.</p>
+          <h1 class="text-3xl font-bold mb-2 text-gradient">{{ 'Conecte sua IA' | trans }}</h1>
+          <p class="text-slate-400">{{ 'O AIFit usa sua própria chave de API para gerar treinos e dietas personalizados.' | trans }}</p>
         </div>
 
         <form [formGroup]="setupForm" (ngSubmit)="onSubmit()" class="space-y-6">
           <div *ngIf="error" class="p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-500 text-sm">
-            {{ error }}
+            {{ error | trans }}
           </div>
           <div *ngIf="success" class="p-4 bg-emerald-500/10 border border-emerald-500/50 rounded-xl text-emerald-400 text-sm flex items-center gap-2">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-            Successfully connected! Redirecting...
+            {{ 'Conectado com sucesso! Redirecionando...' | trans }}
           </div>
 
           <div>
-            <label class="input-label" for="provider">AI Provider</label>
+            <label class="input-label" for="provider">{{ 'Provedor de IA' | trans }}</label>
             <div class="grid grid-cols-2 gap-4 mt-2">
               <!-- OpenAI Option -->
               <div class="relative">
@@ -55,7 +57,7 @@ import { environment } from '../../../../environments/environment';
           </div>
 
           <div>
-            <label class="input-label" for="apiKey">API Key</label>
+            <label class="input-label" for="apiKey">{{ 'Chave API' | trans }}</label>
             <!-- Dynamic accent border based on provider -->
             <input type="password" id="apiKey" formControlName="apiKey" class="input-field" placeholder="sk-..." [class.border-accent]="setupForm.value.provider === 'Gemini'" [class.focus:ring-accent]="setupForm.value.provider === 'Gemini'">
             <p class="text-xs text-slate-500 mt-2 ml-1">
@@ -69,13 +71,13 @@ import { environment } from '../../../../environments/environment';
             class="relative inline-flex items-center justify-center px-6 py-3 font-semibold text-white transition-all duration-300 rounded-xl w-full active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
             <span *ngIf="isLoading" class="animate-pulse flex items-center gap-2">
               <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-              Verifying Connection...
+              {{ 'Verificando Conexão...' | trans }}
             </span>
-            <span *ngIf="!isLoading">Connect AI & Continue</span>
+            <span *ngIf="!isLoading">{{ 'Conectar IA e Continuar' | trans }}</span>
           </button>
           
           <div class="text-center mt-4">
-            <button type="button" (click)="skip()" class="text-sm text-slate-500 hover:text-slate-300 transition-colors">Skip for now</button>
+            <button type="button" (click)="skip()" class="text-sm text-slate-500 hover:text-slate-300 transition-colors">{{ 'Pular por enquanto' | trans }}</button>
           </div>
         </form>
       </div>
@@ -86,6 +88,7 @@ export class AiSetupComponent implements OnInit {
   private fb = inject(FormBuilder);
   private http = inject(HttpClient);
   private router = inject(Router);
+  public langService = inject(LanguageService);
 
   setupForm = this.fb.group({
     provider: ['Gemini', Validators.required], // Default to Gemini
@@ -121,7 +124,7 @@ export class AiSetupComponent implements OnInit {
           }, 1500);
         },
         error: (err) => {
-          this.error = err.error?.message || 'Failed to connect. Please check your API key.';
+          this.error = err.error?.message || 'Falha ao conectar. Verifique sua chave API.';
           this.isLoading = false;
         }
       });

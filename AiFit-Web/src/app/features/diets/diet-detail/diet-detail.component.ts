@@ -3,12 +3,14 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { environment } from '../../../../environments/environment';
-import { LucideAngularModule, Utensils, Clock, ChevronLeft, Flame, DollarSign } from 'lucide-angular';
+import { LanguageService } from '../../../core/services/language.service';
+import { TranslatePipe } from '../../../core/pipes/translate.pipe';
+import { LucideAngularModule, Utensils, Clock, ChevronLeft, Flame, DollarSign, Trash } from 'lucide-angular';
 
 @Component({
   selector: 'app-diet-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, LucideAngularModule],
+  imports: [CommonModule, RouterLink, LucideAngularModule, TranslatePipe],
   template: `
     <div *ngIf="isLoading" class="flex justify-center items-center h-64">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-accent"></div>
@@ -20,18 +22,18 @@ import { LucideAngularModule, Utensils, Clock, ChevronLeft, Flame, DollarSign } 
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <a routerLink="/diets" class="inline-flex items-center text-slate-400 hover:text-white transition-colors text-sm mb-4">
-            <lucide-icon name="chevron-left" [size]="16" class="mr-1"></lucide-icon> Back to Diets
+            <lucide-icon name="chevron-left" [size]="16" class="mr-1"></lucide-icon> {{ 'Voltar às Dietas' | trans }}
           </a>
           <h1 class="text-3xl font-bold text-white flex items-center gap-3">
             {{ diet.name }}
-            <span class="px-3 py-1 bg-accent/20 text-accent text-xs font-semibold rounded-full border border-accent/30">AI Generated</span>
+            <span class="px-3 py-1 bg-accent/20 text-accent text-xs font-semibold rounded-full border border-accent/30">{{ 'AI Generated' | trans }}</span>
           </h1>
-          <p class="text-slate-400 mt-2 line-clamp-2 max-w-3xl">{{ diet.notes || 'Your customized nutrition program.' }}</p>
+          <p class="text-slate-400 mt-2 line-clamp-2 max-w-3xl">{{ (diet.notes || 'Sua estratégia nutricional personalizada.') | trans }}</p>
         </div>
         
         <div class="flex items-center gap-4">
           <div class="px-6 py-3 glass-card flex flex-col items-center justify-center border-accent/30">
-            <span class="text-xs text-slate-400 font-semibold mb-1 uppercase tracking-wider">Total Daily</span>
+            <span class="text-xs text-slate-400 font-semibold mb-1 uppercase tracking-wider">{{ 'Total Diário' | trans }}</span>
             <div class="flex items-center gap-2 text-2xl font-bold text-white">
               <lucide-icon name="flame" [size]="24" class="text-accent"></lucide-icon>
               {{ diet.totalCalories || calculateTotalCalories() }} kcal
@@ -46,15 +48,15 @@ import { LucideAngularModule, Utensils, Clock, ChevronLeft, Flame, DollarSign } 
       <!-- Macros Summary -->
       <div class="grid grid-cols-3 gap-4 lg:hidden mt-6">
         <div class="glass-card p-4 text-center border-b-4 border-b-blue-500">
-          <span class="text-sm text-slate-400">Protein</span>
+          <span class="text-sm text-slate-400">{{ 'Proteína' | trans }}</span>
           <div class="text-xl font-bold text-white">{{ calculateTotalMacro('protein') }}g</div>
         </div>
         <div class="glass-card p-4 text-center border-b-4 border-b-emerald-500">
-          <span class="text-sm text-slate-400">Carbs</span>
+          <span class="text-sm text-slate-400">{{ 'Carboidratos' | trans }}</span>
           <div class="text-xl font-bold text-white">{{ calculateTotalMacro('carbs') }}g</div>
         </div>
         <div class="glass-card p-4 text-center border-b-4 border-b-amber-500">
-          <span class="text-sm text-slate-400">Fat</span>
+          <span class="text-sm text-slate-400">{{ 'Gordura' | trans }}</span>
           <div class="text-xl font-bold text-white">{{ calculateTotalMacro('fat') }}g</div>
         </div>
       </div>
@@ -78,7 +80,7 @@ import { LucideAngularModule, Utensils, Clock, ChevronLeft, Flame, DollarSign } 
             </div>
             
             <div class="text-right flex items-end flex-col gap-1 relative z-10 hidden sm:flex">
-              <span class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Estimated</span>
+              <span class="text-xs text-slate-500 font-semibold uppercase tracking-wider">{{ 'Estimado' | trans }}</span>
               <span class="text-lg font-bold text-white">{{ getMealCalories(meal) }} kcal</span>
             </div>
           </div>
@@ -87,8 +89,8 @@ import { LucideAngularModule, Utensils, Clock, ChevronLeft, Flame, DollarSign } 
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="bg-dark-bg text-xs uppercase tracking-wider text-slate-500 border-b border-dark-border">
-                  <th class="p-4 font-semibold">Food</th>
-                  <th class="p-4 font-semibold w-24">QTY</th>
+                  <th class="p-4 font-semibold">{{ 'Alimento' | trans }}</th>
+                  <th class="p-4 font-semibold w-24">{{ 'Qtd' | trans }}</th>
                   <th class="p-4 font-semibold text-right w-20">Kcal</th>
                   <th class="p-4 font-semibold text-right w-16 hidden sm:table-cell text-blue-400/80">P</th>
                   <th class="p-4 font-semibold text-right w-16 hidden sm:table-cell text-emerald-400/80">C</th>
@@ -120,7 +122,8 @@ export class DietDetailComponent implements OnInit {
   private router = inject(Router);
   private http = inject(HttpClient);
   
-  readonly icons = { Utensils, Clock, ChevronLeft, Flame, DollarSign };
+  public langService = inject(LanguageService);
+  readonly icons = { Utensils, Clock, ChevronLeft, Flame, DollarSign, Trash };
 
   diet: any = null;
   isLoading = true;
@@ -141,7 +144,7 @@ export class DietDetailComponent implements OnInit {
   }
 
   deleteDiet() {
-    if (confirm('Are you sure you want to delete this diet plan?')) {
+    if (confirm(this.langService.translate('Tem certeza que deseja excluir este plano alimentar?'))) {
       this.http.delete(`${environment.apiUrl}/diet/${this.diet.id}`).subscribe(() => {
         this.router.navigate(['/diets']);
       });

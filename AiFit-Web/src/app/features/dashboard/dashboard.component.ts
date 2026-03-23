@@ -3,24 +3,25 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { LucideAngularModule, Dumbbell, Utensils, Activity, ArrowRight, Zap, Target, TrendingUp } from 'lucide-angular';
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
+import { LucideAngularModule, Dumbbell, Utensils, Activity, ArrowRight, Zap, Target, TrendingUp, Plus } from 'lucide-angular';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, LucideAngularModule],
+  imports: [CommonModule, RouterLink, LucideAngularModule, TranslatePipe],
   template: `
     <div class="space-y-6 lg:space-y-8">
       
       <!-- Welcome Header -->
       <div class="glass-card p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 border-primary/20 bg-gradient-to-br from-dark-card/80 to-primary/5">
         <div>
-          <h1 class="text-3xl font-bold text-white mb-2">Welcome back, <span class="text-gradient">{{ userName }}</span>!</h1>
-          <p class="text-slate-400 max-w-xl">Ready to crush your goals today? Your AI assistant is standing by to map out your next move.</p>
+          <h1 class="text-3xl font-bold text-white mb-2">{{ 'Bem vindo(a) de volta' | trans }}, <span class="text-gradient">{{ userName }}</span>!</h1>
+          <p class="text-slate-400 max-w-xl">{{ 'Pronto para esmagar seus objetivos hoje? Seu assistente de IA está pronto para traçar seu próximo passo.' | trans }}</p>
         </div>
         <div class="flex gap-4">
           <a routerLink="/workouts/generate" class="btn-primary whitespace-nowrap group">
-            <lucide-icon name="plus" [size]="18" class="mr-2"></lucide-icon> New Workout
+            <lucide-icon name="plus" [size]="18" class="mr-2"></lucide-icon> {{ 'Novo Treino' | trans }}
           </a>
         </div>
       </div>
@@ -32,10 +33,10 @@ import { LucideAngularModule, Dumbbell, Utensils, Activity, ArrowRight, Zap, Tar
             <div class="p-2 bg-primary/20 text-primary rounded-lg">
               <lucide-icon name="dumbbell" [size]="20"></lucide-icon>
             </div>
-            <span class="text-xs font-semibold px-2 py-1 bg-dark-bg rounded-md text-slate-400">Total</span>
+            <span class="text-xs font-semibold px-2 py-1 bg-dark-bg rounded-md text-slate-400">{{ 'Total' | trans }}</span>
           </div>
           <h3 class="text-3xl font-bold text-white mb-1">{{ stats.workouts }}</h3>
-          <p class="text-sm text-slate-400">Workouts Generated</p>
+          <p class="text-sm text-slate-400">{{ 'Treinos Criados' | trans }}</p>
         </div>
 
         <div class="glass-card p-5 border-l-4 border-l-accent hover:-translate-y-1 transition-transform">
@@ -43,10 +44,10 @@ import { LucideAngularModule, Dumbbell, Utensils, Activity, ArrowRight, Zap, Tar
             <div class="p-2 bg-accent/20 text-accent rounded-lg">
               <lucide-icon name="utensils" [size]="20"></lucide-icon>
             </div>
-            <span class="text-xs font-semibold px-2 py-1 bg-dark-bg rounded-md text-slate-400">Total</span>
+            <span class="text-xs font-semibold px-2 py-1 bg-dark-bg rounded-md text-slate-400">{{ 'Total' | trans }}</span>
           </div>
           <h3 class="text-3xl font-bold text-white mb-1">{{ stats.diets }}</h3>
-          <p class="text-sm text-slate-400">Diets Generated</p>
+          <p class="text-sm text-slate-400">{{ 'Dietas Geradas' | trans }}</p>
         </div>
 
         <div class="glass-card p-5 border-l-4 border-l-emerald-500 hover:-translate-y-1 transition-transform">
@@ -54,10 +55,10 @@ import { LucideAngularModule, Dumbbell, Utensils, Activity, ArrowRight, Zap, Tar
             <div class="p-2 bg-emerald-500/20 text-emerald-400 rounded-lg">
               <lucide-icon name="target" [size]="20"></lucide-icon>
             </div>
-            <span class="text-xs font-semibold px-2 py-1 bg-dark-bg rounded-md text-slate-400">Current</span>
+            <span class="text-xs font-semibold px-2 py-1 bg-dark-bg rounded-md text-slate-400">{{ 'Atual' | trans }}</span>
           </div>
-          <h3 class="text-lg font-bold text-white mb-1 truncate">{{ stats.goal }}</h3>
-          <p class="text-sm text-slate-400">Current Goal</p>
+          <h3 class="text-lg font-bold text-white mb-1 truncate">{{ stats.goal | trans }}</h3>
+          <p class="text-sm text-slate-400">{{ 'Objetivo Atual' | trans }}</p>
         </div>
 
         <div class="glass-card p-5 border-l-4 border-l-amber-500 hover:-translate-y-1 transition-transform">
@@ -65,10 +66,10 @@ import { LucideAngularModule, Dumbbell, Utensils, Activity, ArrowRight, Zap, Tar
             <div class="p-2 bg-amber-500/20 text-amber-500 rounded-lg">
               <lucide-icon name="trending-up" [size]="20"></lucide-icon>
             </div>
-            <span class="text-xs font-semibold px-2 py-1 bg-dark-bg rounded-md text-slate-400">Latest</span>
+            <span class="text-xs font-semibold px-2 py-1 bg-dark-bg rounded-md text-slate-400">{{ 'Último' | trans }}</span>
           </div>
           <h3 class="text-3xl font-bold text-white mb-1">{{ stats.weight }}<span class="text-lg text-slate-500 ml-1">kg</span></h3>
-          <p class="text-sm text-slate-400">Current Weight</p>
+          <p class="text-sm text-slate-400">{{ 'Peso Atual' | trans }}</p>
         </div>
       </div>
 
@@ -83,14 +84,14 @@ import { LucideAngularModule, Dumbbell, Utensils, Activity, ArrowRight, Zap, Tar
                 <lucide-icon name="utensils" [size]="28"></lucide-icon>
               </div>
               <div>
-                <h3 class="text-xl font-bold text-white">Generate Diet</h3>
-                <p class="text-slate-400 text-sm">Need a new meal plan? Let AI craft it for you.</p>
+                <h3 class="text-xl font-bold text-white">{{ 'Gerar Dieta' | trans }}</h3>
+                <p class="text-slate-400 text-sm">{{ 'Precisa de um novo plano alimentar? Deixe a IA criar para você.' | trans }}</p>
               </div>
             </div>
           </div>
           <div class="p-6">
             <a routerLink="/diets/generate" class="flex items-center justify-between text-accent hover:text-accent-hover font-semibold transition-colors">
-              Start Generation <lucide-icon name="arrow-right" [size]="18" class="group-hover:translate-x-1 transition-transform"></lucide-icon>
+              {{ 'Iniciar Geração' | trans }} <lucide-icon name="arrow-right" [size]="18" class="group-hover:translate-x-1 transition-transform"></lucide-icon>
             </a>
           </div>
         </div>
@@ -103,14 +104,14 @@ import { LucideAngularModule, Dumbbell, Utensils, Activity, ArrowRight, Zap, Tar
               <lucide-icon name="zap" [size]="28"></lucide-icon>
             </div>
             <div>
-              <h3 class="text-xl font-bold text-white">AI Brain</h3>
+              <h3 class="text-xl font-bold text-white">{{ 'Cérebro da IA' | trans }}</h3>
               <p class="text-slate-400 text-sm">
-                {{ aiConfigured ? 'Connected & Ready' : 'Not Connected! Workouts/Diets disabled.' }}
+                {{ (aiConfigured ? 'Conectado e Pronto' : 'Não Conectado! Treinos/Dietas desativados.') | trans }}
               </p>
             </div>
           </div>
           <a [routerLink]="aiConfigured ? '/profile' : '/ai-setup'" class="btn-secondary text-sm px-4 py-2">
-            {{ aiConfigured ? 'Manage' : 'Configure' }}
+            {{ (aiConfigured ? 'Gerenciar' : 'Configurar') | trans }}
           </a>
         </div>
       </div>
@@ -121,14 +122,14 @@ import { LucideAngularModule, Dumbbell, Utensils, Activity, ArrowRight, Zap, Tar
 export class DashboardComponent implements OnInit {
   private http = inject(HttpClient);
   
-  readonly icons = { Dumbbell, Utensils, Activity, ArrowRight, Zap, Target, TrendingUp };
+  readonly icons = { Dumbbell, Utensils, Activity, ArrowRight, Zap, Target, TrendingUp, Plus };
   
   userName = 'Athlete';
   aiConfigured = false;
   stats = {
     workouts: 0,
     diets: 0,
-    goal: 'Loading...',
+    goal: 'Carregando...',
     weight: '--'
   };
 
@@ -163,12 +164,12 @@ export class DashboardComponent implements OnInit {
 
   private formatGoal(goalEnumVal: number): string {
     const goals: Record<number, string> = {
-      1: 'Hypertrophy',
-      2: 'Weight Loss',
-      3: 'Strength',
-      4: 'Endurance',
-      5: 'General Fitness'
+      1: 'Hipertrofia (Ganho de Massa)',
+      2: 'Perda de Peso / Emagrecimento',
+      3: 'Força / Performance',
+      4: 'Fôlego / Resistência',
+      5: 'Condicionamento Geral'
     };
-    return goals[goalEnumVal] || 'General Fitness';
+    return goals[goalEnumVal] || 'Condicionamento Geral';
   }
 }

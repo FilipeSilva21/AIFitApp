@@ -3,22 +3,24 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { environment } from '../../../../environments/environment';
+import { LanguageService } from '../../../core/services/language.service';
+import { TranslatePipe } from '../../../core/pipes/translate.pipe';
 import { LucideAngularModule, Utensils, Calendar, Plus, Flame, ArrowRight } from 'lucide-angular';
 
 @Component({
   selector: 'app-diet-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, LucideAngularModule, DatePipe],
+  imports: [CommonModule, RouterLink, LucideAngularModule, DatePipe, TranslatePipe],
   template: `
     <div class="space-y-6">
       
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 class="text-3xl font-bold text-white">My Diets</h1>
-          <p class="text-slate-400">All your AI-generated meal plans.</p>
+          <h1 class="text-3xl font-bold text-white">{{ 'Minhas Dietas' | trans }}</h1>
+          <p class="text-slate-400">{{ 'Todos os seus planos alimentares gerados por IA.' | trans }}</p>
         </div>
         <a routerLink="/diets/generate" class="btn-primary whitespace-nowrap !bg-accent hover:!bg-accent-hover shadow-[0_4px_14px_0_rgba(139,92,246,0.39)]">
-          <lucide-icon name="plus" [size]="18" class="mr-2"></lucide-icon> Generate New
+          <lucide-icon name="plus" [size]="18" class="mr-2"></lucide-icon> {{ 'Gerar Novo' | trans }}
         </a>
       </div>
 
@@ -30,9 +32,9 @@ import { LucideAngularModule, Utensils, Calendar, Plus, Flame, ArrowRight } from
         <div class="w-16 h-16 rounded-full bg-dark-bg/50 border border-dark-border text-slate-500 flex items-center justify-center mx-auto mb-4">
           <lucide-icon name="utensils" [size]="32"></lucide-icon>
         </div>
-        <h3 class="text-xl font-bold text-white mb-2">No diets yet</h3>
-        <p class="text-slate-400 max-w-sm mx-auto mb-6">You haven't generated any meal plans. Let our AI build the perfect custom nutrition plan for you.</p>
-        <a routerLink="/diets/generate" class="btn-primary !bg-accent hover:!bg-accent-hover shadow-[0_4px_14px_0_rgba(139,92,246,0.39)]">Get Started</a>
+        <h3 class="text-xl font-bold text-white mb-2">{{ 'Nenhuma dieta ainda' | trans }}</h3>
+        <p class="text-slate-400 max-w-sm mx-auto mb-6">{{ 'Você não gerou nenhum plano alimentar. Deixe nossa IA montar a estratégia nutricional perfeita para você.' | trans }}</p>
+        <a routerLink="/diets/generate" class="btn-primary !bg-accent hover:!bg-accent-hover shadow-[0_4px_14px_0_rgba(139,92,246,0.39)]">{{ 'Começar agora' | trans }}</a>
       </div>
 
       <div *ngIf="!isLoading && diets.length > 0" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -52,17 +54,17 @@ import { LucideAngularModule, Utensils, Calendar, Plus, Flame, ArrowRight } from
             
             <div class="flex items-center text-sm text-slate-400">
               <lucide-icon name="utensils" [size]="16" class="mr-2"></lucide-icon>
-              {{ diet.meals?.length || 0 }} meals
+              {{ diet.meals?.length || 0 }} {{ 'refeições' | trans }}
             </div>
 
             <div class="flex items-center text-sm font-semibold text-accent mt-2 p-2 bg-accent/10 rounded-lg inline-flex">
               <lucide-icon name="flame" [size]="16" class="mr-2"></lucide-icon>
-              {{ diet.totalCalories || 'Calculated automatically' }} kcal/day
+              {{ (diet.totalCalories || 'Calculado automaticamente') | trans }} {{ 'kcal/dia' | trans }}
             </div>
           </div>
 
           <div class="mt-6 pt-4 border-t border-dark-border flex justify-between items-center text-sm font-semibold text-slate-400 group-hover:text-accent transition-colors">
-            View details
+            {{ 'Ver detalhes' | trans }}
             <lucide-icon name="arrow-right" [size]="16" class="group-hover:translate-x-1 transition-transform"></lucide-icon>
           </div>
         </a>
@@ -74,6 +76,7 @@ import { LucideAngularModule, Utensils, Calendar, Plus, Flame, ArrowRight } from
 export class DietListComponent implements OnInit {
   private http = inject(HttpClient);
   
+  public langService = inject(LanguageService);
   readonly icons = { Utensils, Calendar, Plus, Flame, ArrowRight };
 
   diets: any[] = [];

@@ -42,7 +42,12 @@ public class AIService
             var client = _httpClientFactory.CreateClient();
             if (apiKey == "TEST") return true;
 
-            if (provider == AIProvider.OpenAI)
+            if (provider == AIProvider.Ollama)
+            {
+                var response = await client.GetAsync("http://localhost:11434/");
+                return response.IsSuccessStatusCode;
+            }
+            else if (provider == AIProvider.OpenAI)
             {
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
                 var response = await client.GetAsync("https://api.openai.com/v1/models");
@@ -81,7 +86,13 @@ public class AIService
             _ => "Condicionamento físico geral"
         };
 
-        return $@"Você é um personal trainer profissional e certificado. Crie um plano de treino de musculação personalizado baseado nas informações do aluno abaixo.
+        var langInstruction = request.Language == "en" ? 
+            "CRITICAL: The entire generated workout plan MUST be written heavily in ENGLISH (en-US). Translate all names, days, notes, and exercises to English." : 
+            "CRÍTICO: O plano de treino gerado DEVE ser escrito obrigatoriamente em PORTUGUÊS (pt-BR). Traduza todos os nomes, notas, dicas e exercícios para o Português.";
+
+        return $@"{langInstruction}
+
+Você é um personal trainer profissional e certificado. Crie um plano de treino de musculação personalizado baseado nas informações do aluno abaixo.
 
 INFORMAÇÕES DO ALUNO:
 - Objetivo: {goalStr}
@@ -134,7 +145,13 @@ REGRAS:
             _ => "Condicionamento físico geral"
         };
 
-        return $@"Você é um nutricionista esportivo profissional e certificado. Crie um plano alimentar personalizado baseado nas informações abaixo.
+        var langInstruction = request.Language == "en" ? 
+            "CRITICAL: The entire generated diet plan MUST be written carefully in ENGLISH (en-US). Translate all meals, names, foods, and notes to English." : 
+            "CRÍTICO: O plano de dieta gerado DEVE ser escrito obrigatoriamente em PORTUGUÊS (pt-BR). Traduza todos os nomes, refeições, alimentos e dicas para o Português.";
+
+        return $@"{langInstruction}
+
+Você é um nutricionista esportivo profissional e certificado. Crie um plano alimentar personalizado baseado nas informações abaixo.
 
 INFORMAÇÕES:
 - Objetivo: {goalStr}
@@ -206,13 +223,14 @@ REGRAS:
 
     private async Task<string> CallAI(User user, string prompt)
     {
-        var apiKey = _configuration["AI_API_KEY"];
-        var providerStr = _configuration["AI_PROVIDER_TYPE"];
+        var apiKey = user.AIApiKey;
+        var providerStr = user.AIProviderType?.ToString();
 
-        if (string.IsNullOrEmpty(providerStr) || (string.IsNullOrEmpty(apiKey) && !providerStr.Equals("Ollama", StringComparison.OrdinalIgnoreCase)))
+        // Se o usuário não tem uma configuração visual no perfil (DB), usamos o fallback padrão (.env)
+        if (string.IsNullOrEmpty(providerStr))
         {
-            apiKey = user.AIApiKey;
-            providerStr = user.AIProviderType?.ToString();
+            providerStr = _configuration["AI_PROVIDER_TYPE"];
+            apiKey = _configuration["AI_API_KEY"];
         }
 
         var provider = Enum.TryParse<AIProvider>(providerStr, true, out var p) ? p : AIProvider.Gemini;

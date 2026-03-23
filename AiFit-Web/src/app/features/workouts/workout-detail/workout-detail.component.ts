@@ -3,12 +3,14 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { environment } from '../../../../environments/environment';
-import { LucideAngularModule, Dumbbell, Calendar, Clock, ChevronLeft } from 'lucide-angular';
+import { LanguageService } from '../../../core/services/language.service';
+import { TranslatePipe } from '../../../core/pipes/translate.pipe';
+import { LucideAngularModule, Dumbbell, Calendar, Clock, ChevronLeft, Plus } from 'lucide-angular';
 
 @Component({
   selector: 'app-workout-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, LucideAngularModule],
+  imports: [CommonModule, RouterLink, LucideAngularModule, TranslatePipe],
   template: `
     <div *ngIf="isLoading" class="flex justify-center items-center h-64">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -19,17 +21,17 @@ import { LucideAngularModule, Dumbbell, Calendar, Clock, ChevronLeft } from 'luc
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <a routerLink="/workouts" class="inline-flex items-center text-slate-400 hover:text-white transition-colors text-sm mb-4">
-            <lucide-icon name="chevron-left" [size]="16" class="mr-1"></lucide-icon> Back to Workouts
+            <lucide-icon name="chevron-left" [size]="16" class="mr-1"></lucide-icon> {{ 'Voltar aos Treinos' | trans }}
           </a>
           <h1 class="text-3xl font-bold text-white flex items-center gap-3">
             {{ workout.name }}
-            <span class="px-3 py-1 bg-primary/20 text-primary text-xs font-semibold rounded-full border border-primary/30">AI Generated</span>
+            <span class="px-3 py-1 bg-primary/20 text-primary text-xs font-semibold rounded-full border border-primary/30">{{ 'AI Generated' | trans }}</span>
           </h1>
-          <p class="text-slate-400 mt-2 line-clamp-2 max-w-3xl">{{ workout.notes || 'Your customized training program.' }}</p>
+          <p class="text-slate-400 mt-2 line-clamp-2 max-w-3xl">{{ (workout.notes || 'Seu programa de treino personalizado.') | trans }}</p>
         </div>
         
         <button (click)="deleteWorkout()" class="px-4 py-2 bg-red-500/10 text-red-500 border border-red-500/50 rounded-lg hover:bg-red-500/20 transition-colors text-sm font-medium">
-          Delete Program
+          {{ 'Excluir Programa' | trans }}
         </button>
       </div>
 
@@ -41,15 +43,15 @@ import { LucideAngularModule, Dumbbell, Calendar, Clock, ChevronLeft } from 'luc
             <div>
               <h3 class="text-xl font-bold text-white flex items-center gap-2">
                 <lucide-icon name="calendar" [size]="20" class="text-primary"></lucide-icon>
-                {{ getDayName(day.dayOfWeek) }}
+                {{ getDayName(day.dayOfWeek) | trans }}
               </h3>
-              <p class="text-primary mt-1 font-medium">{{ day.muscleGroup || 'Full Body' }}</p>
+              <p class="text-primary mt-1 font-medium">{{ (day.muscleGroup || 'Corpo Inteiro') | trans }}</p>
             </div>
             
             <div class="text-right">
               <span class="inline-flex items-center text-xs font-medium px-2.5 py-1 bg-dark-bg rounded-md text-slate-400 border border-dark-border">
                 <lucide-icon name="clock" [size]="12" class="mr-1.5"></lucide-icon>
-                {{ formatDuration(day.duration) }}
+                {{ formatDuration(day.duration) | trans }}
               </span>
             </div>
           </div>
@@ -67,13 +69,13 @@ import { LucideAngularModule, Dumbbell, Calendar, Clock, ChevronLeft } from 'luc
                     
                     <div class="mt-2 flex flex-wrap gap-2 text-sm">
                       <span class="px-2.5 py-1 bg-primary/10 text-primary border border-primary/20 rounded-md font-semibold">
-                        {{ ex.sets }} Sets
+                        {{ ex.sets }} {{ 'Séries' | trans }}
                       </span>
                       <span class="px-2.5 py-1 bg-accent/10 text-accent border border-accent/20 rounded-md font-semibold">
-                        {{ ex.reps }} Reps
+                        {{ ex.reps }} {{ 'Repetições' | trans }}
                       </span>
                       <span *ngIf="ex.restSeconds" class="px-2.5 py-1 bg-slate-800 text-slate-300 border border-slate-700 rounded-md">
-                        {{ ex.restSeconds }}s Rest
+                        {{ ex.restSeconds }}s {{ 'Descanso' | trans }}
                       </span>
                     </div>
 
@@ -96,6 +98,7 @@ export class WorkoutDetailComponent implements OnInit {
   private router = inject(Router);
   private http = inject(HttpClient);
   
+  public langService = inject(LanguageService);
   readonly icons = { Dumbbell, Calendar, Clock, ChevronLeft };
 
   workout: any = null;
@@ -125,16 +128,27 @@ export class WorkoutDetailComponent implements OnInit {
   }
 
   getDayName(dayEnum: any): string {
-    if (typeof dayEnum === 'string') return dayEnum;
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    return days[dayEnum] || 'Unknown';
+    if (typeof dayEnum === 'string') {
+        const map: any = {
+          'Monday': 'Segunda-feira',
+          'Tuesday': 'Terça-feira',
+          'Wednesday': 'Quarta-feira',
+          'Thursday': 'Quinta-feira',
+          'Friday': 'Sexta-feira',
+          'Saturday': 'Sábado',
+          'Sunday': 'Domingo'
+        };
+        return map[dayEnum] || dayEnum;
+    }
+    const days = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'];
+    return days[dayEnum] || 'Desconhecido';
   }
 
   formatDuration(duration: number): string {
-    if (duration === 40) return '40 Min';
-    if (duration === 60) return '1 Hour';
-    if (duration === 90) return '1.5 Hours';
-    if (duration === 0) return 'Unlimited';
-    return duration + ' Min';
+    if (duration === 40) return '40 ' + 'Minutos';
+    if (duration === 60) return '1 ' + 'Hora';
+    if (duration === 90) return '1.5 ' + 'Horas';
+    if (duration === 0) return 'Sem limite';
+    return duration + ' ' + 'Minutos';
   }
 }
