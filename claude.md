@@ -7,22 +7,26 @@ This is a Full-Stack application split into two distinct projects:
 - **`AiFit-Web/`**: Angular 17 Frontend using **Standalone Components** (No `app.module.ts`).
 - **`AIFit-Service/`**: .NET 8 Web API Backend.
 
-The frontend communicates with the backend via `http://localhost:5177/api`. The environment configurations are handled via `environment.ts` in Angular and `appsettings.json` in .NET. A root `.env` file exists purely for reference/Docker purposes but is not actively loaded into .NET by default.
-
 ## 2. Artificial Intelligence Integration (BYOK)
 - Do **NOT** hardcode API keys into the backend repository.
-- The system uses a **Bring Your Own Key (BYOK)** model. The user inputs their API key locally in the Angular frontend, which is sent to `AISettingsController` and saved in the SQLite user database.
-- The `AIService.cs` reads the user's saved API key at runtime to call OpenAI or Gemini APIs directly via `HttpClient`.
-- **MOCK Bypassing:** In `AIService.cs`, if the API key exactly matches the string `"TEST"`, it will bypass external API calls and return structured JSON mock data to prevent blocking UI development when the user runs out of free API tier limits.
+- **BYOK/Rerouting:** Users can configure their own AI (OpenAI, Gemini, or Ollama) in the Profile page. The `AIService.cs` dynamically routes requests based on the user's saved preference in the database.
+- **Ollama Support:** Local AI generation is supported at `http://localhost:11434`.
+- **MOCK Bypassing:** If the API key is `"TEST"`, the system returns mock JSON to bypass costs.
 
-## 3. Angular Frontend Rules
-- **Standalone Components:** All new components must have `standalone: true`. Add imports directly in the component's `@Component({ imports: [...] })` metadata.
-- **Lucide Icons:** We use `lucide-angular`. Icons MUST be explicitly imported and provided in `app.config.ts`. Do not use `.pick()` inside individual components.
-- **Styling:** The design heavily relies on TailwindCSS. The `index.css` file contains global `@layer` components like `.glass-card`, `.btn-primary`, and `.text-gradient`. Use these utility classes instead of writing raw CSS!
-- **Signals/Inject:** Prefer the modern Angular `inject()` function over constructor injection.
+## 3. Internationalization (i18n)
+- **Baseline Language:** The system is coded with **Portuguese (pt-BR)** strings as the primary keys.
+- **Translation System:** We use a custom `LanguageService` and `TranslatePipe` (`| trans`).
+- **Adding Keys:** When adding UI text, use Portuguese in the template (e.g., `{{ 'Treinos' | trans }}`) and add the English translation to the `dictionary` in `language.service.ts`.
+- **AI Localized:** Prompts are sent to the AI in the user's selected language (`en` or `pt`) via the `Language` property in DTOs.
 
-## 4. .NET Backend Rules
-- **Entity Framework Core:** We use SQLite (`aifitapp.db`). If you change an entity in `Models/Entities`, you must generate a new EF Core migration (`dotnet ef migrations add <Name>`).
-- **Enums & JSON:** The `Program.cs` uses `JsonStringEnumConverter()`. This means all Enums (`UserGoal`, `AIProvider`, `WeekDay`) are serialized and deserialized as literal **Strings** in JSON (e.g., `"Monday"` instead of `1`). The Angular frontend expects and sends strings to prevent enum integer binding failures.
-- **Data Transfer Objects:** Never expose raw Database Entities to the frontend. Always map them to DTOs in `DTOs.cs`.
-- **Authentication:** All protected endpoints must use the `[Authorize]` attribute. JWT tokens are passed via the `Authorization: Bearer` header. The user ID is extracted via `User.FindFirst(ClaimTypes.NameIdentifier)`.
+## 4. Angular Frontend Rules
+- **Standalone Components:** All new components must have `standalone: true`.
+- **Lucide Icons:** explicitly import and register icons in `app.config.ts` or the component's `icons` object.
+- **Signals:** Use `signal()` for reactive state (like `currentLang`).
+- **Layout:** The `DashboardLayoutComponent` uses a **sticky sidebar** (`lg:sticky`). Ensure main content handles its own scrolling.
+
+## 5. .NET Backend Rules
+- **EF Core:** Use SQLite. Always run `dotnet ef migrations add` after model changes.
+- **JSON Enums:** `Program.cs` uses `JsonStringEnumConverter()`. Enums are strings in JSON.
+- **Controllers:** Always use DTOs for request/response. Protected endpoints MUST have `[Authorize]`.
+- **User Context:** Extract `userId` from `User.FindFirst(ClaimTypes.NameIdentifier)`.

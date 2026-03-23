@@ -6,11 +6,12 @@ A full-stack, AI-powered platform that generates hyper-personalized workout rout
 
 - **Frontend:** Angular 17 (Standalone Components)
 - **Styling:** TailwindCSS + Custom Glassmorphism UI
+- **i18n:** Custom `LanguageService` + `TranslatePipe` (PT-BR Baseline / EN-US Dictionary)
 - **Icons:** Lucide-Angular
 - **Backend:** .NET 8 Web API (C#)
 - **Database:** SQLite via Entity Framework Core (EF Core)
 - **Authentication:** JWT Bearer tokens & BCrypt password hashing
-- **AI Integrations:** Google Gemini 2.0 Flash & OpenAI (ChatGPT)
+- **AI Integrations:** Google Gemini 2.0 Flash, OpenAI (ChatGPT) & **Ollama (Local AI)**
 
 ## 📁 Project Structure
 
@@ -20,11 +21,12 @@ The repository is divided into two main applications:
 
 ## ✨ Key Features
 
-- **BYOK AI Brain:** Connect your own OpenAI or Google Gemini API key securely.
+- **BYOK AI Brain:** Connect your own OpenAI, Google Gemini, or run **Ollama locally** for free unlimited generation.
+- **Multilingual Support:** Fully translated UI in **English** and **Portuguese**, with prompts automatically adjusting to the user's language.
 - **Workout Generator:** Creates detailed day-by-day workout splits tailored to your experience, injuries, and goals.
 - **Diet Generator:** Creates personalized meal plans with precise macronutrient tracking based on calorie targets and dietary restrictions.
-- **Measurements Dashboard:** Track your body progression, weight, and fitness goals over time.
-- **Mock Mode:** Don't have paid AI credits? Use the mock development mode to test UI rendering!
+- **Measurements & Progress:** Track body weight, chest, waist, and limb measurements with automatic historical tracking.
+- **Modern UI:** Responsive glassmorphism dashboard with sticky sidebar and real-time AI status monitoring.
 
 ## 🛠️ How to Run Locally
 
@@ -47,9 +49,10 @@ npm run start
 ```
 *The web app will automatically open at `http://localhost:4200`.*
 
-### 3. Connect your AI (Or Test for Free!)
+### 3. Setup & Configuration
 1. Create a local account in the app.
-2. Go to **Profile -> Configure AI**.
-3. Select an AI Provider (OpenAI or Gemini).
-4. **Important:** If you do not have an API key with active billing credits, simply type **`TEST`** in the API Key field!
-5. The `TEST` key activates the local Mock Mode, instantly generating offline mock data so you can test the application UI without incurring AI costs or dealing with 429 Quota errors.
+2. Go to **Profile** (gear icon in sidebar).
+3. **App Preferences:** Change your system language to English or Portuguese.
+4. **AI Configuration:** 
+    - Select **OpenAI** or **Gemini** and enter your key (use `TEST` for mock offline data).
+    - Select **Ollama** to use a local LLM (requires Ollama installed and running on `localhost:11434`).
