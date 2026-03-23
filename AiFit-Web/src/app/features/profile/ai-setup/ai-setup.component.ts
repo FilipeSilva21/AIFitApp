@@ -36,7 +36,7 @@ import { environment } from '../../../../environments/environment';
             <div class="grid grid-cols-2 gap-4 mt-2">
               <!-- OpenAI Option -->
               <div class="relative">
-                <input type="radio" id="openai" [value]="1" formControlName="provider" class="peer sr-only">
+                <input type="radio" id="openai" value="OpenAI" formControlName="provider" class="peer sr-only">
                 <label for="openai" class="flex flex-col items-center justify-center p-4 bg-dark-bg/50 border border-dark-border rounded-xl cursor-pointer hover:bg-slate-800 peer-checked:border-primary peer-checked:bg-primary/10 transition-all">
                   <span class="font-semibold text-slate-200">OpenAI</span>
                   <span class="text-xs text-slate-500 mt-1">ChatGPT</span>
@@ -45,7 +45,7 @@ import { environment } from '../../../../environments/environment';
 
               <!-- Gemini Option -->
               <div class="relative">
-                <input type="radio" id="gemini" [value]="2" formControlName="provider" class="peer sr-only">
+                <input type="radio" id="gemini" value="Gemini" formControlName="provider" class="peer sr-only">
                 <label for="gemini" class="flex flex-col items-center justify-center p-4 bg-dark-bg/50 border border-dark-border rounded-xl cursor-pointer hover:bg-slate-800 peer-checked:border-accent peer-checked:bg-accent/10 transition-all hover:border-accent/50">
                   <span class="font-semibold text-slate-200">Google Gemini</span>
                   <span class="text-xs text-slate-500 mt-1">Gemini 2.5 Pro</span>
@@ -56,15 +56,16 @@ import { environment } from '../../../../environments/environment';
 
           <div>
             <label class="input-label" for="apiKey">API Key</label>
-            <input type="password" id="apiKey" formControlName="apiKey" class="input-field" placeholder="sk-..." [class.border-accent]="setupForm.value.provider === 2" [class.focus:ring-accent]="setupForm.value.provider === 2">
+            <!-- Dynamic accent border based on provider -->
+            <input type="password" id="apiKey" formControlName="apiKey" class="input-field" placeholder="sk-..." [class.border-accent]="setupForm.value.provider === 'Gemini'" [class.focus:ring-accent]="setupForm.value.provider === 'Gemini'">
             <p class="text-xs text-slate-500 mt-2 ml-1">
-              <span *ngIf="setupForm.value.provider === 1">Get your key from <a href="https://platform.openai.com/api-keys" target="_blank" class="text-primary hover:underline">OpenAI Dashboard</a></span>
-              <span *ngIf="setupForm.value.provider === 2">Get your key from <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-accent hover:underline">Google AI Studio</a></span>
+              <span *ngIf="setupForm.value.provider === 'OpenAI'">Get your key from <a href="https://platform.openai.com/api-keys" target="_blank" class="text-primary hover:underline">OpenAI Dashboard</a></span>
+              <span *ngIf="setupForm.value.provider === 'Gemini'">Get your key from <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-accent hover:underline">Google AI Studio</a></span>
             </p>
           </div>
 
           <button type="submit" [disabled]="setupForm.invalid || isLoading || success" 
-            [ngClass]="setupForm.value.provider === 2 ? 'bg-accent hover:bg-accent-hover shadow-[0_4px_14px_0_rgba(139,92,246,0.39)] hover:shadow-[0_6px_20px_rgba(139,92,246,0.23)]' : 'btn-primary'" 
+            [ngClass]="setupForm.value.provider === 'Gemini' ? 'bg-accent hover:bg-accent-hover shadow-[0_4px_14px_0_rgba(139,92,246,0.39)] hover:shadow-[0_6px_20px_rgba(139,92,246,0.23)]' : 'btn-primary'" 
             class="relative inline-flex items-center justify-center px-6 py-3 font-semibold text-white transition-all duration-300 rounded-xl w-full active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
             <span *ngIf="isLoading" class="animate-pulse flex items-center gap-2">
               <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -87,7 +88,7 @@ export class AiSetupComponent implements OnInit {
   private router = inject(Router);
 
   setupForm = this.fb.group({
-    provider: [2, Validators.required], // Default to Gemini
+    provider: ['Gemini', Validators.required], // Default to Gemini
     apiKey: ['', Validators.required]
   });
 

@@ -3,16 +3,22 @@ using System.Text.Json;
 using AIFitApp.DTOs;
 using AIFitApp.Models.Entities;
 using AIFitApp.Models.Enums;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace AIFitApp.Services;
 
 public class AIService
 {
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ILogger<AIService> _logger;
+    private readonly IConfiguration _configuration;
 
-    public AIService(IHttpClientFactory httpClientFactory)
+    public AIService(IHttpClientFactory httpClientFactory, ILogger<AIService> logger, IConfiguration configuration)
     {
         _httpClientFactory = httpClientFactory;
+        _logger = logger;
+        _configuration = configuration;
     }
 
     public async Task<Workout> GenerateWorkout(GenerateWorkoutRequest request, User user)
@@ -34,6 +40,8 @@ public class AIService
         try
         {
             var client = _httpClientFactory.CreateClient();
+            if (apiKey == "TEST") return true;
+
             if (provider == AIProvider.OpenAI)
             {
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
@@ -169,20 +177,86 @@ REGRAS:
 - totalCalories deve ser o total diário estimado";
     }
 
+    private async Task<HttpResponseMessage> SendWithRetry(Func<Task<HttpResponseMessage>> sendRequest, string providerName)
+    {
+        const int maxRetries = 3;
+        var delay = TimeSpan.FromSeconds(1);
+
+        for (var attempt = 1; attempt <= maxRetries; attempt++)
+        {
+            var response = await sendRequest();
+            if (response.IsSuccessStatusCode)
+                return response;
+
+            if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+            {
+                _logger.LogWarning("{ProviderName} returned 429 TooManyRequests (attempt {Attempt}/{MaxRetries})", providerName, attempt, maxRetries);
+                if (attempt == maxRetries) return response;
+
+                await Task.Delay(delay);
+                delay = delay * 2;
+                continue;
+            }
+
+            return response;
+        }
+
+        throw new InvalidOperationException("SendWithRetry should not reach this point.");
+    }
+
     private async Task<string> CallAI(User user, string prompt)
     {
-        if (!user.AIProviderType.HasValue || string.IsNullOrEmpty(user.AIApiKey))
-            throw new InvalidOperationException("AI provider not configured. Please connect your AI account first.");
+        var apiKey = _configuration["AI_API_KEY"];
+        var providerStr = _configuration["AI_PROVIDER_TYPE"];
 
-        var client = _httpClientFactory.CreateClient();
-
-        if (user.AIProviderType == AIProvider.OpenAI)
+        if (string.IsNullOrEmpty(providerStr) || (string.IsNullOrEmpty(apiKey) && !providerStr.Equals("Ollama", StringComparison.OrdinalIgnoreCase)))
         {
-            return await CallOpenAI(client, user.AIApiKey, prompt);
+            apiKey = user.AIApiKey;
+            providerStr = user.AIProviderType?.ToString();
+        }
+
+        var provider = Enum.TryParse<AIProvider>(providerStr, true, out var p) ? p : AIProvider.Gemini;
+
+        if (string.IsNullOrEmpty(apiKey) && provider != AIProvider.Ollama)
+            throw new InvalidOperationException("AI Key not configured in .env or user profile.");
+
+        if (apiKey == "TEST" && prompt.Contains("treino"))
+        {
+            return @"{
+                ""name"": ""Treino de Adaptação (MOCK)"",
+                ""notes"": ""Este é um treino de teste gerado localmente porque você usou a chave TEST."",
+                ""days"": [
+                    { ""dayOfWeek"": 1, ""muscleGroup"": ""Peito e Tríceps"", ""exercises"": [ { ""name"": ""Supino Reto"", ""sets"": 3, ""reps"": ""10-12"", ""restSeconds"": 60, ""notes"": ""Foque na contração"" } ] },
+                    { ""dayOfWeek"": 3, ""muscleGroup"": ""Costas e Bíceps"", ""exercises"": [ { ""name"": ""Puxada Alta"", ""sets"": 3, ""reps"": ""10-12"", ""restSeconds"": 60, ""notes"": ""Puxe com os cotovelos"" } ] }
+                ]
+            }";
+        }
+        if (apiKey == "TEST" && prompt.Contains("nutricionista"))
+        {
+            return @"{
+                ""name"": ""Dieta de Teste (MOCK)"",
+                ""totalCalories"": 2000,
+                ""notes"": ""Dieta gerada com a chave TEST."",
+                ""meals"": [
+                    { ""name"": ""Café da Manhã"", ""time"": ""08:00"", ""foods"": [ { ""name"": ""Ovos mexidos"", ""quantity"": ""2 unidades"", ""calories"": 140, ""protein"": 12, ""carbs"": 1, ""fat"": 10 } ] },
+                    { ""name"": ""Almoço"", ""time"": ""12:30"", ""foods"": [ { ""name"": ""Arroz e Frango"", ""quantity"": ""250g"", ""calories"": 350, ""protein"": 35, ""carbs"": 45, ""fat"": 5 } ] }
+                ]
+            }";
+        }
+        var client = _httpClientFactory.CreateClient();
+        client.Timeout = TimeSpan.FromMinutes(10); // Aumento significativo do timeout padrão para o Ollama local que pode ser lento
+
+        if (provider == AIProvider.OpenAI)
+        {
+            return await CallOpenAI(client, apiKey, prompt);
+        }
+        else if (provider == AIProvider.Ollama)
+        {
+            return await CallOllama(client, prompt);
         }
         else
         {
-            return await CallGemini(client, user.AIApiKey, prompt);
+            return await CallGemini(client, apiKey, prompt);
         }
     }
 
@@ -204,16 +278,21 @@ REGRAS:
 
         var json = JsonSerializer.Serialize(requestBody);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
-        var response = await client.PostAsync("https://api.openai.com/v1/chat/completions", content);
+
+        var response = await SendWithRetry(
+            () => client.PostAsync("https://api.openai.com/v1/chat/completions", content),
+            "OpenAI");
 
         if (!response.IsSuccessStatusCode)
         {
+            var error = await response.Content.ReadAsStringAsync();
+
             if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
                 throw new Exception("Você excedeu o limite de requisições ou a cota gratuita da sua API key (Erro 429). Por favor, verifique o painel da OpenAI ou tente novamente mais tarde.");
+
             if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 throw new Exception("Sua chave da API (API Key) é inválida. Por favor, atualize em Configurações de IA no seu perfil.");
-                
-            var error = await response.Content.ReadAsStringAsync();
+
             throw new Exception($"OpenAI API error: {error}");
         }
 
@@ -224,6 +303,54 @@ REGRAS:
             .GetProperty("message")
             .GetProperty("content")
             .GetString() ?? throw new Exception("Empty response from OpenAI");
+    }
+
+    private async Task<string> CallOllama(HttpClient client, string prompt)
+    {
+        var model = _configuration["OLLAMA_MODEL"] ?? "phi3";
+
+        var requestBody = new
+        {
+            model = model,
+            messages = new[]
+            {
+                new { role = "system", content = "You are a professional fitness and nutrition expert. Always respond in valid JSON format." },
+                new { role = "user", content = prompt }
+            },
+            stream = false,
+            options = new
+            {
+                temperature = 0.7,
+                num_predict = 4096,
+                num_ctx = 8192
+            }
+        };
+
+        var json = JsonSerializer.Serialize(requestBody);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await SendWithRetry(
+            () => client.PostAsync("http://localhost:11434/api/chat", content),
+            "Ollama");
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Ollama API error: {error}");
+        }
+
+        var responseJson = await response.Content.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(responseJson);
+        var root = doc.RootElement;
+        
+        var messageContent = root.GetProperty("message").GetProperty("content").GetString() ?? "";
+
+        var done = root.TryGetProperty("done", out var d) ? d.GetBoolean() : false;
+        var evalCount = root.TryGetProperty("eval_count", out var ec) ? ec.GetInt32() : 0;
+        
+        _logger.LogInformation("Ollama Model Inference => Done: {done} | Eval Tokens: {evalCount} | Text Length: {len}", done, evalCount, messageContent.Length);
+
+        return messageContent;
     }
 
     private async Task<string> CallGemini(HttpClient client, string apiKey, string prompt)
@@ -250,21 +377,22 @@ REGRAS:
         var json = JsonSerializer.Serialize(requestBody);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
         var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={apiKey}";
-        var response = await client.PostAsync(url, content);
+
+        var response = await SendWithRetry(
+            () => client.PostAsync(url, content),
+            "Gemini");
 
         if (!response.IsSuccessStatusCode)
         {
+            var responseBody = await response.Content.ReadAsStringAsync();
+
             if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
                 throw new Exception("Você excedeu o limite de requisições ou a cota gratuita da sua API key (Erro 429). Por favor, aguarde alguns minutos ou verifique o painel do Google AI Studio.");
-            if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
-            {
-                var tryParse = await response.Content.ReadAsStringAsync();
-                if (tryParse.Contains("API key not valid"))
-                    throw new Exception("Sua chave da API (API Key) é inválida. Por favor, atualize em Configurações de IA no seu perfil.");
-            }
-                
-            var error = await response.Content.ReadAsStringAsync();
-            throw new Exception($"Gemini API error: {error}");
+
+            if (response.StatusCode == System.Net.HttpStatusCode.BadRequest && responseBody.Contains("API key not valid", StringComparison.OrdinalIgnoreCase))
+                throw new Exception("Sua chave da API (API Key) é inválida. Por favor, atualize em Configurações de IA no seu perfil.");
+
+            throw new Exception($"Gemini API error: {responseBody}");
         }
 
         var responseJson = await response.Content.ReadAsStringAsync();
@@ -279,17 +407,21 @@ REGRAS:
 
     private Workout ParseWorkoutResponse(string aiResponse, GenerateWorkoutRequest request, int userId)
     {
-        // Clean up the response - remove markdown code blocks if present
-        var cleanJson = aiResponse.Trim();
-        if (cleanJson.StartsWith("```"))
-        {
-            cleanJson = cleanJson.Substring(cleanJson.IndexOf('\n') + 1);
-            cleanJson = cleanJson.Substring(0, cleanJson.LastIndexOf("```"));
-        }
-
         try
         {
-            using var doc = JsonDocument.Parse(cleanJson);
+            var cleanJson = aiResponse.Trim();
+            if (cleanJson.StartsWith("```"))
+            {
+                var firstNewLine = cleanJson.IndexOf('\n');
+                if (firstNewLine >= 0)
+                    cleanJson = cleanJson.Substring(firstNewLine + 1);
+                
+                var lastTicks = cleanJson.LastIndexOf("```");
+                if (lastTicks >= 0)
+                    cleanJson = cleanJson.Substring(0, lastTicks);
+            }
+
+            using var doc = JsonDocument.Parse(cleanJson.Trim());
             var root = doc.RootElement;
 
             var workout = new Workout
@@ -334,7 +466,7 @@ REGRAS:
 
             return workout;
         }
-        catch (JsonException ex)
+        catch (Exception)
         {
             // Fallback: create a basic workout with the AI response as notes
             return new Workout
@@ -348,16 +480,21 @@ REGRAS:
 
     private Diet ParseDietResponse(string aiResponse, GenerateDietRequest request, int userId)
     {
-        var cleanJson = aiResponse.Trim();
-        if (cleanJson.StartsWith("```"))
-        {
-            cleanJson = cleanJson.Substring(cleanJson.IndexOf('\n') + 1);
-            cleanJson = cleanJson.Substring(0, cleanJson.LastIndexOf("```"));
-        }
-
         try
         {
-            using var doc = JsonDocument.Parse(cleanJson);
+            var cleanJson = aiResponse.Trim();
+            if (cleanJson.StartsWith("```"))
+            {
+                var firstNewLine = cleanJson.IndexOf('\n');
+                if (firstNewLine >= 0)
+                    cleanJson = cleanJson.Substring(firstNewLine + 1);
+                
+                var lastTicks = cleanJson.LastIndexOf("```");
+                if (lastTicks >= 0)
+                    cleanJson = cleanJson.Substring(0, lastTicks);
+            }
+
+            using var doc = JsonDocument.Parse(cleanJson.Trim());
             var root = doc.RootElement;
 
             var diet = new Diet
@@ -404,7 +541,7 @@ REGRAS:
 
             return diet;
         }
-        catch (JsonException)
+        catch (Exception)
         {
             return new Diet
             {

@@ -109,8 +109,8 @@ import { LucideAngularModule, Dumbbell, Utensils, Activity, ArrowRight, Zap, Tar
               </p>
             </div>
           </div>
-          <a routerLink="/ai-setup" class="btn-secondary text-sm px-4 py-2">
-            Configure
+          <a [routerLink]="aiConfigured ? '/profile' : '/ai-setup'" class="btn-secondary text-sm px-4 py-2">
+            {{ aiConfigured ? 'Manage' : 'Configure' }}
           </a>
         </div>
       </div>

@@ -17,37 +17,7 @@ import { LucideAngularModule, User, Settings2, Zap, Save, CheckCircle } from 'lu
         <p class="text-slate-400">Manage your personal information and AI configuration.</p>
       </div>
 
-      <!-- AI Settings Card -->
-      <div class="glass-card overflow-hidden">
-        <div class="bg-dark-card p-6 border-b border-dark-border flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="p-2 bg-accent/20 text-accent rounded-lg">
-              <lucide-icon name="zap" [size]="20"></lucide-icon>
-            </div>
-            <h2 class="text-lg font-bold text-white">AI Configuration</h2>
-          </div>
-          <span *ngIf="aiConfigured" class="flex items-center text-emerald-400 text-sm font-semibold bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
-            <lucide-icon name="check-circle" [size]="14" class="mr-1"></lucide-icon> Connected
-          </span>
-        </div>
-        
-        <div class="p-6">
-          <div *ngIf="aiConfigured" class="flex items-center justify-between p-4 border border-dark-border rounded-xl bg-dark-bg/50">
-            <div>
-              <h4 class="font-semibold text-white">Active Provider: {{ aiProvider === 1 ? 'OpenAI' : 'Google Gemini' }}</h4>
-              <p class="text-sm text-slate-400">Your API key is securely stored and used for generating content.</p>
-            </div>
-            <button (click)="disconnectAI()" class="btn-secondary text-red-400 hover:text-red-300 hover:border-red-500/50">
-              Disconnect
-            </button>
-          </div>
 
-          <div *ngIf="!aiConfigured" class="text-center py-6">
-            <p class="text-slate-400 mb-4">You need to connect an AI provider to generate workouts and diets.</p>
-            <a href="/ai-setup" class="btn-primary !bg-accent hover:!bg-accent-hover shadow-[0_4px_14px_0_rgba(139,92,246,0.39)]">Configure AI Now</a>
-          </div>
-        </div>
-      </div>
 
       <!-- Profile Settings Card -->
       <div class="glass-card overflow-hidden">
@@ -139,7 +109,7 @@ export class ProfileComponent implements OnInit {
   });
 
   aiConfigured = false;
-  aiProvider: number | null = null;
+  aiProvider: string | null = null;
   isSaving = false;
   saveSuccess = false;
 

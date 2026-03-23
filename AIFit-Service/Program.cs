@@ -1,4 +1,5 @@
 using System.Text;
+using DotNetEnv;
 using AIFitApp.Data;
 using AIFitApp.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -6,7 +7,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text.Json.Serialization;
 
+// Load environment variables from .env file BEFORE configuration is built
+Env.Load();
+
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddEnvironmentVariables();
 
 // Database
 builder.Services.AddDbContext<AppDbContext>(options =>

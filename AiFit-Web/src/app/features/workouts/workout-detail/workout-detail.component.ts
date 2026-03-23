@@ -124,9 +124,9 @@ export class WorkoutDetailComponent implements OnInit {
     }
   }
 
-  getDayName(dayEnum: number): string {
+  getDayName(dayEnum: any): string {
+    if (typeof dayEnum === 'string') return dayEnum;
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    // enum: Monday=1...Sunday=7
     return days[dayEnum] || 'Unknown';
   }
 
