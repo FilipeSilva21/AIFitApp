@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/auth.service';
 import { LanguageService } from '../../core/services/language.service';
 import { TranslatePipe } from '../../core/pipes/translate.pipe';
-import { LucideAngularModule, Dumbbell, Utensils, Activity, User, LogOut, Settings2, Menu, X } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'app-dashboard-layout',
@@ -108,7 +108,7 @@ export class DashboardLayoutComponent {
   public langService = inject(LanguageService);
 
   // Register icons used in the layout
-  readonly icons = { Dumbbell, Utensils, Activity, User, LogOut, Settings2, Menu, X };
+
 
   sidebarOpen = false;
 

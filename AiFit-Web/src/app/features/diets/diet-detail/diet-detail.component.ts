@@ -5,7 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { environment } from '../../../../environments/environment';
 import { LanguageService } from '../../../core/services/language.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
-import { LucideAngularModule, Utensils, Clock, ChevronLeft, Flame, DollarSign, Trash } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'app-diet-detail',
@@ -123,7 +123,7 @@ export class DietDetailComponent implements OnInit {
   private http = inject(HttpClient);
   
   public langService = inject(LanguageService);
-  readonly icons = { Utensils, Clock, ChevronLeft, Flame, DollarSign, Trash };
+
 
   diet: any = null;
   isLoading = true;

@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { LanguageService } from '../../core/services/language.service';
 import { TranslatePipe } from '../../core/pipes/translate.pipe';
-import { LucideAngularModule, Activity, TrendingDown, Target, Plus, X, Trash2 } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'app-measurements',
@@ -149,7 +149,7 @@ export class MeasurementsComponent implements OnInit {
   private http = inject(HttpClient);
   
   public langService = inject(LanguageService);
-  readonly icons = { Activity, TrendingDown, Target, Plus, X, Trash2 };
+
 
   measurements: any[] = [];
   isLoading = true;

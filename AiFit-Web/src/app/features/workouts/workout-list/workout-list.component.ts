@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 import { environment } from '../../../../environments/environment';
 import { LanguageService } from '../../../core/services/language.service';
 import { TranslatePipe } from '../../../core/pipes/translate.pipe';
-import { LucideAngularModule, Dumbbell, Calendar, Plus, Clock, ArrowRight } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'app-workout-list',
@@ -80,7 +80,7 @@ import { LucideAngularModule, Dumbbell, Calendar, Plus, Clock, ArrowRight } from
 export class WorkoutListComponent implements OnInit {
   private http = inject(HttpClient);
   
-  readonly icons = { Dumbbell, Calendar, Plus, Clock, ArrowRight };
+
 
   workouts: any[] = [];
   isLoading = true;

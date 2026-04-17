@@ -12,6 +12,9 @@ This is a Full-Stack application split into two distinct projects:
 - **BYOK/Rerouting:** Users can configure their own AI (OpenAI, Gemini, or Ollama) in the Profile page. The `AIService.cs` dynamically routes requests based on the user's saved preference in the database.
 - **Ollama Support:** Local AI generation is supported at `http://localhost:11434`.
 - **MOCK Bypassing:** If the API key is `"TEST"`, the system returns mock JSON to bypass costs.
+- **API Key Security:** User API keys are encrypted at rest using ASP.NET Core `IDataProtector` before being stored in the database. The `AIService` decrypts them in-memory only when making requests.
+
+> **⚠️ Ollama Architecture Note:** The Ollama integration (`localhost:11434`) assumes a **self-hosted** deployment where the frontend, backend, and Ollama all run on the same machine. If the backend is deployed to the cloud (AWS, Azure, etc.), `localhost` on the server will NOT reach the user's local Ollama instance. In that scenario, Ollama communication would need to be rerouted through the frontend or the user would need to expose their local port via a tunnel (e.g., Ngrok).
 
 ## 3. Internationalization (i18n)
 - **Baseline Language:** The system is coded with **Portuguese (pt-BR)** strings as the primary keys.

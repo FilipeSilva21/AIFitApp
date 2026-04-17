@@ -3,6 +3,7 @@ using System.Text.Json;
 using AIFitApp.DTOs;
 using AIFitApp.Models.Entities;
 using AIFitApp.Models.Enums;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -13,12 +14,14 @@ public class AIService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<AIService> _logger;
     private readonly IConfiguration _configuration;
+    private readonly IDataProtector _protector;
 
-    public AIService(IHttpClientFactory httpClientFactory, ILogger<AIService> logger, IConfiguration configuration)
+    public AIService(IHttpClientFactory httpClientFactory, ILogger<AIService> logger, IConfiguration configuration, IDataProtectionProvider protectionProvider)
     {
         _httpClientFactory = httpClientFactory;
         _logger = logger;
         _configuration = configuration;
+        _protector = protectionProvider.CreateProtector("AIFitApp.ApiKeys");
     }
 
     public async Task<Workout> GenerateWorkout(GenerateWorkoutRequest request, User user)
@@ -223,7 +226,7 @@ REGRAS:
 
     private async Task<string> CallAI(User user, string prompt)
     {
-        var apiKey = user.AIApiKey;
+        var apiKey = DecryptApiKey(user.AIApiKey);
         var providerStr = user.AIProviderType?.ToString();
 
         // Se o usuário não tem uma configuração visual no perfil (DB), usamos o fallback padrão (.env)
@@ -567,6 +570,28 @@ REGRAS:
                 Name = "Dieta Gerada por IA",
                 Notes = $"Resposta da IA (formato inesperado): {aiResponse}"
             };
+        }
+    }
+
+    /// <summary>
+    /// Decrypts an API key stored in the database. If decryption fails
+    /// (e.g. legacy plaintext key), returns the raw value as-is for backward compatibility.
+    /// </summary>
+    private string? DecryptApiKey(string? encryptedKey)
+    {
+        if (string.IsNullOrEmpty(encryptedKey)) return encryptedKey;
+        // Sentinel values that are never encrypted
+        if (encryptedKey is "TEST" or "local") return encryptedKey;
+
+        try
+        {
+            return _protector.Unprotect(encryptedKey);
+        }
+        catch
+        {
+            // Graceful fallback: key is likely a legacy plaintext value
+            _logger.LogWarning("Failed to decrypt API key — treating as legacy plaintext.");
+            return encryptedKey;
         }
     }
 }

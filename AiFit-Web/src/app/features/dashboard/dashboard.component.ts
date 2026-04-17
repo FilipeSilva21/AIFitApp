@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { TranslatePipe } from '../../core/pipes/translate.pipe';
-import { LucideAngularModule, Dumbbell, Utensils, Activity, ArrowRight, Zap, Target, TrendingUp, Plus } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'app-dashboard',
@@ -122,7 +122,7 @@ import { LucideAngularModule, Dumbbell, Utensils, Activity, ArrowRight, Zap, Tar
 export class DashboardComponent implements OnInit {
   private http = inject(HttpClient);
   
-  readonly icons = { Dumbbell, Utensils, Activity, ArrowRight, Zap, Target, TrendingUp, Plus };
+
   
   userName = 'Athlete';
   aiConfigured = false;
@@ -156,9 +156,31 @@ export class DashboardComponent implements OnInit {
       this.stats.diets = Array.isArray(res) ? res.length : 0;
     });
 
-    this.http.get<any>(`${environment.apiUrl}/profile`).subscribe(res => {
-      this.stats.goal = this.formatGoal(res?.goal || 5);
-      this.stats.weight = res?.weight?.toString() || '--';
+    this.http.get<any>(`${environment.apiUrl}/profile`).subscribe({
+      next: (res) => {
+        console.log('Dashboard profile loaded:', JSON.stringify(res));
+        const rawGoal = res?.goal ?? res?.Goal ?? 5;
+        
+        // Ultra-resilient mapping
+        let goalId: number;
+        if (typeof rawGoal === 'number') {
+          goalId = rawGoal;
+        } else {
+          const map: Record<string, number> = {
+            'Hypertrophy': 1, 'WeightLoss': 2, 'Strength': 3, 'Endurance': 4, 'GeneralFitness': 5,
+            '1': 1, '2': 2, '3': 3, '4': 4, '5': 5
+          };
+          goalId = map[String(rawGoal).trim()] || 5;
+        }
+
+        const weightVal = res?.weight ?? res?.Weight;
+        this.stats.goal = this.formatGoal(goalId);
+        this.stats.weight = weightVal?.toString() || '--';
+      },
+      error: (err) => {
+        console.error('Error loading profile in dashboard:', err);
+        this.stats.goal = 'Erro ao carregar';
+      }
     });
   }
 

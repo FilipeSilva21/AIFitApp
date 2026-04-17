@@ -3,6 +3,7 @@ using DotNetEnv;
 using AIFitApp.Data;
 using AIFitApp.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text.Json.Serialization;
@@ -13,9 +14,21 @@ Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
 
-// Database
+// Database — conditional provider (SQLite default, PostgreSQL for production)
+var dbProvider = builder.Configuration["DatabaseProvider"] ?? "Sqlite";
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    if (dbProvider.Equals("PostgreSQL", StringComparison.OrdinalIgnoreCase))
+        options.UseNpgsql(connectionString);
+    else
+        options.UseSqlite(connectionString);
+});
+
+// Data Protection (for encrypting user API keys at rest)
+builder.Services.AddDataProtection()
+    .SetApplicationName("AIFitApp");
 
 // Services
 builder.Services.AddScoped<AuthService>();
@@ -54,7 +67,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
     {
-        policy.WithOrigins("http://localhost:4200")
+        policy.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost" || new Uri(origin).Host == "127.0.0.1")
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();

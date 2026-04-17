@@ -5,7 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { LanguageService } from '../../core/services/language.service';
 import { TranslatePipe } from '../../core/pipes/translate.pipe';
-import { LucideAngularModule, User, Settings2, Zap, Save, CheckCircle, Languages, Globe } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'app-profile',
@@ -126,6 +126,10 @@ import { LucideAngularModule, User, Settings2, Zap, Save, CheckCircle, Languages
               <lucide-icon name="check-circle" [size]="18" class="mr-2"></lucide-icon> {{ 'Perfil atualizado com sucesso!' | trans }}
             </div>
 
+            <div *ngIf="errorMessage" class="p-4 bg-red-500/10 border border-red-500/50 rounded-xl text-red-500 text-sm flex items-center">
+              <lucide-icon name="x" [size]="18" class="mr-2"></lucide-icon> {{ errorMessage | trans }}
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label class="input-label">{{ 'Idade' | trans }}</label>
@@ -135,11 +139,11 @@ import { LucideAngularModule, User, Settings2, Zap, Save, CheckCircle, Languages
               <div>
                 <label class="input-label">{{ 'Objetivo Principal' | trans }}</label>
                 <select formControlName="goal" class="input-field cursor-pointer">
-                  <option [value]="1">{{ 'Hipertrofia (Ganho de Massa)' | trans }}</option>
-                  <option [value]="2">{{ 'Perda de Peso / Emagrecimento' | trans }}</option>
-                  <option [value]="3">{{ 'Força / Performance' | trans }}</option>
-                  <option [value]="4">{{ 'Fôlego / Resistência' | trans }}</option>
-                  <option [value]="5">{{ 'Condicionamento Geral' | trans }}</option>
+                  <option value="1">{{ 'Hipertrofia (Ganho de Massa)' | trans }}</option>
+                  <option value="2">{{ 'Perda de Peso / Emagrecimento' | trans }}</option>
+                  <option value="3">{{ 'Força / Performance' | trans }}</option>
+                  <option value="4">{{ 'Fôlego / Resistência' | trans }}</option>
+                  <option value="5">{{ 'Condicionamento Geral' | trans }}</option>
                 </select>
               </div>
 
@@ -190,13 +194,13 @@ export class ProfileComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   
   public langService = inject(LanguageService);
-  readonly icons = { User, Settings2, Zap, Save, CheckCircle, Languages, Globe };
+
 
   profileForm = this.fb.group({
     age: [null as number | null],
     weight: [null as number | null],
     height: [null as number | null],
-    goal: [5, Validators.required],
+    goal: ['5', Validators.required],
     trainingExperience: ['Beginner (0-6 months)'],
     injuries: ['']
   });
@@ -225,18 +229,49 @@ export class ProfileComponent implements OnInit {
     });
   }
 
+  errorMessage = '';
+
+  private mapGoalToId(goal: any): string {
+    if (!goal) return '5';
+    if (typeof goal === 'number') return String(goal);
+    
+    const goalStr = String(goal).trim();
+    const map: Record<string, string> = {
+      'Hypertrophy': '1',
+      'WeightLoss': '2',
+      'Strength': '3',
+      'Endurance': '4',
+      'GeneralFitness': '5',
+      '1': '1', '2': '2', '3': '3', '4': '4', '5': '5'
+    };
+    return map[goalStr] || '5';
+  }
+
   loadProfile() {
-    this.http.get<any>(`${environment.apiUrl}/profile`).subscribe(res => {
-      if (res) {
-        this.profileForm.patchValue({
-          age: res.age,
-          weight: res.weight,
-          height: res.height,
-          goal: res.goal || 5,
-          trainingExperience: res.trainingExperience || 'Beginner (0-6 months)',
-          injuries: res.injuries
-        });
-        this.cdr.detectChanges();
+    this.http.get<any>(`${environment.apiUrl}/profile`).subscribe({
+      next: (res) => {
+        console.log('Profile loaded:', JSON.stringify(res));
+        if (res) {
+          const ageVal = res.age ?? res.Age;
+          const weightVal = res.weight ?? res.Weight;
+          const heightVal = res.height ?? res.Height;
+          const goalVal = res.goal ?? res.Goal;
+          const trainingExperienceVal = res.trainingExperience ?? res.TrainingExperience;
+          const injuriesVal = res.injuries ?? res.Injuries;
+
+          this.profileForm.patchValue({
+            age: ageVal,
+            weight: weightVal,
+            height: heightVal,
+            goal: this.mapGoalToId(goalVal),
+            trainingExperience: trainingExperienceVal || 'Beginner (0-6 months)',
+            injuries: injuriesVal || ''
+          });
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        console.error('Error loading profile:', err);
       }
     });
   }
@@ -246,19 +281,39 @@ export class ProfileComponent implements OnInit {
     
     this.isSaving = true;
     this.saveSuccess = false;
+    this.errorMessage = '';
 
+    const goalIdToEnum: Record<number, string> = {
+      1: 'Hypertrophy',
+      2: 'WeightLoss',
+      3: 'Strength',
+      4: 'Endurance',
+      5: 'GeneralFitness'
+    };
+    const goalNum = Number(this.profileForm.value.goal);
+    const goalStr = goalIdToEnum[goalNum] || 'GeneralFitness';
     const payload = {
       ...this.profileForm.value,
-      goal: Number(this.profileForm.value.goal)
+      goal: goalStr,
+      Goal: goalStr
     };
 
+    console.log('Saving profile payload:', JSON.stringify(payload));
+
     this.http.put(`${environment.apiUrl}/profile`, payload).subscribe({
-      next: () => {
+      next: (res) => {
+        console.log('Save response:', JSON.stringify(res));
         this.isSaving = false;
         this.saveSuccess = true;
+        // Refresh profile data after save to confirm
+        this.loadProfile();
         setTimeout(() => this.saveSuccess = false, 3000);
       },
-      error: () => this.isSaving = false
+      error: (err) => {
+        this.isSaving = false;
+        this.errorMessage = err.error?.message || 'Erro ao salvar perfil.';
+        console.error('Error saving profile:', err);
+      }
     });
   }
 
