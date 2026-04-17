@@ -1,58 +1,60 @@
 # AIFit App 🏋️‍♂️🤖
 
-A full-stack, AI-powered platform that generates hyper-personalized workout routines and diet plans using the user's own Artificial Intelligence keys (BYOK - Bring Your Own Key).
+Uma plataforma full-stack impulsionada por IA que gera rotinas de treino e planos de dieta hiper-personalizados utilizando as próprias chaves de Inteligência Artificial do usuário (BYOK - Bring Your Own Key).
 
-## 🚀 Tech Stack
+## 🚀 Tech Stack (Tecnologias)
 
 - **Frontend:** Angular 17 (Standalone Components)
-- **Styling:** TailwindCSS + Custom Glassmorphism UI
-- **i18n:** Custom `LanguageService` + `TranslatePipe` (PT-BR Baseline / EN-US Dictionary)
-- **Icons:** Lucide-Angular
+- **Estilização:** TailwindCSS + UI Customizada em Glassmorphism
+- **i18n:** `LanguageService` customizado + `TranslatePipe` (Base em PT-BR / Dicionário em EN-US)
+- **Ícones:** Lucide-Angular
 - **Backend:** .NET 8 Web API (C#)
-- **Database:** SQLite via Entity Framework Core (EF Core)
-- **Authentication:** JWT Bearer tokens & BCrypt password hashing
-- **AI Integrations:** Google Gemini 2.0 Flash, OpenAI (ChatGPT) & **Ollama (Local AI)**
+- **Banco de Dados:** SQLite via Entity Framework Core (EF Core)
+- **Autenticação:** JWT Bearer tokens & Hashing de senha com BCrypt
+- **Integrações de IA:** Google Gemini 2.0 Flash, OpenAI (ChatGPT) & **Ollama (IA Local)**
 
-## 📁 Project Structure
+## 📁 Estrutura do Projeto
 
-The repository is divided into two main applications:
-- `/AiFit-Web` - The Angular Frontend application.
-- `/AIFit-Service` - The .NET 8 Backend service and SQLite Database.
+O repositório está dividido em duas aplicações principais:
+- `/AiFit-Web` - A aplicação Frontend em Angular.
+- `/AIFit-Service` - O serviço de Backend em .NET 8 e Banco de Dados SQLite.
 
-## ✨ Key Features
+## ✨ Principais Funcionalidades
 
-- **BYOK AI Brain:** Connect your own OpenAI, Google Gemini, or run **Ollama locally** for free unlimited generation.
-- **Multilingual Support:** Fully translated UI in **English** and **Portuguese**, with prompts automatically adjusting to the user's language.
-- **Workout Generator:** Creates detailed day-by-day workout splits tailored to your experience, injuries, and goals.
-- **Diet Generator:** Creates personalized meal plans with precise macronutrient tracking based on calorie targets and dietary restrictions.
-- **Measurements & Progress:** Track body weight, chest, waist, and limb measurements with automatic historical tracking.
-- **Modern UI:** Responsive glassmorphism dashboard with sticky sidebar and real-time AI status monitoring.
+- **Cérebro de IA BYOK:** Conecte sua própria chave da OpenAI, Google Gemini, ou rode o **Ollama localmente** para gerações gratuitas e ilimitadas.
+- **Suporte Multilíngue:** Interface totalmente traduzida em **Inglês** e **Português**, com prompts que se ajustam automaticamente ao idioma do usuário.
+- **Gerador de Treinos:** Cria divisões de treino detalhadas dia a dia, adaptadas à sua experiência, lesões e objetivos.
+- **Gerador de Dieta:** Cria planos alimentares personalizados com rastreamento preciso de macronutrientes baseados em metas calóricas e restrições dietéticas.
+- **Medidas & Progresso:** Monitore peso corporal, tórax, cintura e medidas de membros com rastreamento histórico automático.
+- **Interface Moderna:** Dashboard responsivo em glassmorphism com barra lateral fixa e monitoramento de status da IA em tempo real.
 
-## 🛠️ How to Run Locally
+## 🛠️ Como Executar Localmente
 
-### 1. Start the Backend (.NET)
-Open a terminal in the root folder and navigate to the backend service:
+### 1. Iniciar o Backend (.NET)
+Abra um terminal na pasta raiz e navegue até o serviço de backend:
 ```bash
 cd AIFit-Service
 dotnet restore
 dotnet run
-```
-*The API will start running on `http://localhost:5177`.*
+A API começará a rodar em http://localhost:5177.
 
-### 2. Start the Frontend (Angular)
-Open a new terminal window and navigate to the frontend portal:
-```bash
+2. Iniciar o Frontend (Angular)
+Abra uma nova janela de terminal e navegue até o portal frontend:
+
+Bash
 cd AiFit-Web
 npm install
 npm run start
-# or npx ng serve
-```
-*The web app will automatically open at `http://localhost:4200`.*
+# ou npx ng serve
+A aplicação web abrirá automaticamente em http://localhost:4200.
 
-### 3. Setup & Configuration
-1. Create a local account in the app.
-2. Go to **Profile** (gear icon in sidebar).
-3. **App Preferences:** Change your system language to English or Portuguese.
-4. **AI Configuration:** 
-    - Select **OpenAI** or **Gemini** and enter your key (use `TEST` for mock offline data).
-    - Select **Ollama** to use a local LLM (requires Ollama installed and running on `localhost:11434`).
+3. Configuração
+Crie uma conta local no aplicativo.
+
+Vá em Perfil (ícone de engrenagem na barra lateral).
+
+Preferências do App: Altere o idioma do sistema para Inglês ou Português.
+
+Configuração de IA: - Selecione OpenAI ou Gemini e insira sua chave (use TEST para dados simulados offline).
+
+Selecione Ollama para usar um LLM local (requer Ollama instalado e rodando em localhost:11434).
